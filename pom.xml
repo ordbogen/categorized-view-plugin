@@ -55,6 +55,12 @@
   		<version>4.11</version>
   		<scope>test</scope>
   	</dependency>
+  	<dependency>
+  		<groupId>org.jenkins-ci.plugins</groupId>
+  		<artifactId>dashboard-view</artifactId>
+  		<version>2.9.4</version>
+  		<optional>true</optional>
+  	</dependency>
   </dependencies>
   <build>
         <pluginManagement>
