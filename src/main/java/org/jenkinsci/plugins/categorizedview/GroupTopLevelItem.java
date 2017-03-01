@@ -5,8 +5,6 @@ import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.TopLevelItem;
 import hudson.model.TopLevelItemDescriptor;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.model.Run;
 import hudson.search.SearchIndex;
@@ -83,59 +81,59 @@ public class GroupTopLevelItem  implements TopLevelItem{
 	public BallColor getIconColor() {
 		BallColor colorState = BallColor.NOTBUILT;
 		for (TopLevelItem items : getNestedItems()) {
-			if (items instanceof AbstractProject) {
-				BallColor projectColorState = ((AbstractProject)items).getIconColor();
+			if (items instanceof Job<?, ?>) {
+				BallColor projectColorState = ((Job<?, ?>)items).getIconColor();
 				colorState = chooseNextColor(colorState, projectColorState);
 			}
 		}
 		return colorState;
 	}
 	
-	public Run getLastBuild() {
+	public Run<?,?> getLastBuild() {
 		return getLastBuildOfType(new GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
+			public Run<?,?> getFrom(Job<?, ?> project) {
 				return project.getLastBuild();
 			}
 		});
     }
 	
-	public Run getLastSuccessfulBuild() {
+	public Run<?,?> getLastSuccessfulBuild() {
 		return getLastBuildOfType(new GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
-				return (AbstractBuild) project.getLastSuccessfulBuild();
+			public Run<?,?> getFrom(Job<?, ?> project) {
+				return (Run<?,?>) project.getLastSuccessfulBuild();
 			}
 		});
 	}
 	
-	public Run getLastStableBuild() {
+	public Run<?,?> getLastStableBuild() {
 		return getLastBuildOfType(new GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
-				return (AbstractBuild) project.getLastStableBuild();
+			public Run<?,?> getFrom(Job<?, ?> project) {
+				return (Run<?,?>) project.getLastStableBuild();
 			}
 		});
 	}
 
-	public Run getLastFailedBuild() {
+	public Run<?,?> getLastFailedBuild() {
 		return getLastBuildOfType(new GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
-				return (AbstractBuild) project.getLastFailedBuild();
+			public Run<?,?> getFrom(Job<?, ?> project) {
+				return (Run<?,?>) project.getLastFailedBuild();
 			}
 		});
 	}
 	
-	public Run getLastUnsuccessfulBuild() {
+	public Run<?,?> getLastUnsuccessfulBuild() {
 		return getLastBuildOfType(new GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
-				return (AbstractBuild) project.getLastUnsuccessfulBuild();
+			public Run<?,?> getFrom(Job<?, ?> project) {
+				return (Run<?,?>) project.getLastUnsuccessfulBuild();
 			}
 		});
 	}
 
-	public Run getLastBuildOfType(GetBuild getBuild) {
-		AbstractBuild lastBuild = null;
+	public Run<?,?> getLastBuildOfType(GetBuild getBuild) {
+		Run<?,?> lastBuild = null;
 		for (TopLevelItem item : getNestedItems()) {
-			if (item instanceof AbstractProject) {
-				AbstractBuild build = getBuild.getFrom((AbstractProject)item);
+			if (item instanceof Job<?, ?>) {
+				Run<?,?> build = getBuild.getFrom((Job<?, ?>)item);
 				if (lastBuild == null)
 					lastBuild = build;
 				if (build == null)
@@ -151,7 +149,7 @@ public class GroupTopLevelItem  implements TopLevelItem{
 	}
 	
 	static interface GetBuild {
-		public AbstractBuild getFrom(AbstractProject project);
+		public Run<?,?> getFrom(Job<?,?> project);
 	}
 
 	public BallColor chooseNextColor(BallColor res, BallColor iconColor) {
@@ -244,8 +242,8 @@ public class GroupTopLevelItem  implements TopLevelItem{
 		HealthReport lowest = new HealthReport();
 		lowest.setScore(100);
 		for (TopLevelItem e : getNestedItems()) {
-			if (e instanceof AbstractProject) {
-				HealthReport buildHealth = ((AbstractProject)e).getBuildHealth();
+			if (e instanceof Job<?, ?>) {
+				HealthReport buildHealth = ((Job<?, ?>)e).getBuildHealth();
 				if (buildHealth.getScore() < lowest.getScore())
 					lowest = buildHealth;
 			}
@@ -271,7 +269,7 @@ public class GroupTopLevelItem  implements TopLevelItem{
 	}
 
 	@SuppressWarnings("unchecked")
-	public Collection<? extends Job> getAllJobs() {
+	public Collection<? extends Job<?, ?>> getAllJobs() {
 		return Collections.EMPTY_LIST;
 	}
 
