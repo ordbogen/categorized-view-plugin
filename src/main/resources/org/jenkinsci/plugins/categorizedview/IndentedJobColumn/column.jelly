@@ -24,12 +24,12 @@ THE SOFTWARE.
 
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
-<j:if test="${!view.isGroupTopLevelItem(job)}">
+<j:if test="${!descriptor.isGroupTopLevelItem(job)}">
     <td style="${indenter.getCss(job)}">
         <a href="${jobBaseUrl}${job.shortUrl}" class='model-link inside'> <l:breakable value="${h.getRelativeDisplayNameFrom(job, itemGroup)}"/></a>
     </td>
 </j:if>
-<j:if test="${view.isGroupTopLevelItem(job)}">
+<j:if test="${descriptor.isGroupTopLevelItem(job)}">
 	<td style="${indenter.getCss(job)}" data="${job.name}">
         <l:breakable value="${h.getRelativeDisplayNameFrom(job, itemGroup)}"/>
     </td>
