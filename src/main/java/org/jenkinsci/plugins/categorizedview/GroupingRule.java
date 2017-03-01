@@ -24,14 +24,14 @@ public class GroupingRule extends CategorizationCriteria
 			return null;
 		
 		final String groupNamingRule = StringUtils.isEmpty(getNamingRule())?"$1":getNamingRule();
-		return item.getName().replaceAll(getNormalizedGroupRegex(), groupNamingRule);
+		return item.getFullName().replaceAll(getNormalizedGroupRegex(), groupNamingRule);
 	}
 	
 	private boolean isOnGroup(TopLevelItem item) {
 		if (StringUtils.isEmpty(getGroupRegex())) 
 			return false;
 		
-		return item.getName().matches(getNormalizedGroupRegex()); 
+		return item.getFullName().matches(getNormalizedGroupRegex()); 
 	}
 
 	String getNormalizedGroupRegex() {
