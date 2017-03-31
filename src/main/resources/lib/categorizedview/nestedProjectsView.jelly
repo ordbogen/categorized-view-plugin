@@ -26,50 +26,36 @@ THE SOFTWARE.
 <j:jelly xmlns:j="jelly:core" xmlns:x="jelly:xml" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/categorizedview">
   <st:documentation>
-    Renders a list of jobs and their key information.
+    Renders a list of grouped jobs.
 
     <st:attribute name="jobs" use="required" trim="Collection">
       Items to show.
     </st:attribute>
-    <st:attribute name="jobBaseUrl" type="String">
-      Deprecated. Using this attribute has no effect.
-    </st:attribute>
-    <st:attribute name="views" type="Collection&lt;View>">
-      If non-null, render nested views.
-    </st:attribute>
-    <st:attribute name="indenter" type="hudson.Indenter">
-      Optional Indenter instance used to indent items.
-    </st:attribute>
-    <st:attribute name="columnExtensions" type="Collection&lt;hudson.views.ListViewColumn>">
-      List view columns to render. If omitted, the default ones from ListView.getDefaultColumns() are used.
-    </st:attribute>
-    <st:attribute name="itemGroup" use="optional" type="hudson.model.ItemGroup">
-      The containing group, for purposes of name calculation.
-    </st:attribute>
   </st:documentation>
 
-  <t:setIconSize/>
   <div class="dashboard">
-    <j:if test="${columnExtensions==null}">
-        <j:invokeStatic var="columnExtensions" className="hudson.model.ListView" method="getDefaultColumns"/>
-    </j:if>
-
     <j:if test="${!empty(jobs) or !empty(attrs.views)}">
       <!-- project list -->
       <table id="projectstatus_${job.name}" class="pane bigtable">
-
 		 <tr style="border: none;" class="hidden-header">
           <j:forEach var="col" items="${columnExtensions}">
-             <st:include page="columnHeader.jelly" it="${col}" />
+             <th>
+	            <st:nbsp/>
+	          </th>
           </j:forEach>
           <th>
             <st:nbsp/>
-          </th>
+          </th>	
         </tr>
-        
         <j:forEach var="job" items="${jobs}">
-          <j:set var="relativeLinkToJob" value="${h.getRelativeLinkTo(job)}"/>
-          <t:projectViewRow jobBaseUrl="${relativeLinkToJob.substring(0, relativeLinkToJob.length() - job.shortUrl.length())}"/>
+		  <tr id="job_${job.name}" class="${job.disabled?'disabledJob':null}">
+		    <j:forEach var="col" items="${columnExtensions}">
+		      <st:include page="column.jelly" it="${col}"/>
+		    </j:forEach>
+		    <td>
+		      <st:nbsp/>
+		    </td>
+		  </tr>
         </j:forEach>
       </table>
     </j:if>

@@ -6,9 +6,9 @@ import static org.mockito.Mockito.when;
 import hudson.model.BallColor;
 import hudson.model.FreeStyleBuild;
 import hudson.model.HealthReport;
+import hudson.model.Job;
+import hudson.model.Run;
 import hudson.model.TopLevelItem;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.FreeStyleProject;
 
 import java.util.Calendar;
@@ -18,51 +18,55 @@ import org.jenkinsci.plugins.categorizedview.GroupTopLevelItem.GetBuild;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
+@SuppressWarnings("rawtypes")
 public class GroupTopLevelItemTest {
-	GroupTopLevelItem subject = new GroupTopLevelItem("");
+	GroupTopLevelItem subject = new GroupTopLevelItem("",".*ignore-me.*");
 	@Test
 	public void getBuildHealth_returnsWorstHealthValue() {
 		subject.add(makeProjectWithHealth(80));
 		subject.add(makeProjectWithHealth(30));
-		
+
 		assertEquals(30, subject.getBuildHealth().getScore());
 	}
-	
+
 	@Test
 	public void getIconColor_ShouldReturnWorstBallColor() {
 		assertEquals(BallColor.NOTBUILT, subject.getIconColor());
-		
+
 		subject.add(makeProjectWithColor(BallColor.NOTBUILT));
 		assertEquals(BallColor.NOTBUILT, subject.getIconColor());
-		
+
 		subject.add(makeProjectWithColor(BallColor.DISABLED));
 		assertEquals(BallColor.DISABLED, subject.getIconColor());
-		
+
 		subject.add(makeProjectWithColor(BallColor.BLUE));
 		assertEquals(BallColor.BLUE, subject.getIconColor());
-		
+
 		subject.add(makeProjectWithColor(BallColor.DISABLED));
 		assertEquals(BallColor.BLUE, subject.getIconColor());
-		
+
+		subject.add(makeProjectWithColor(BallColor.ABORTED, "ignore-me"));
+		assertEquals(BallColor.BLUE, subject.getIconColor());
+
 		subject.add(makeProjectWithColor(BallColor.ABORTED));
 		assertEquals(BallColor.ABORTED, subject.getIconColor());
-		
+
 		subject.add(makeProjectWithColor(BallColor.BLUE));
 		assertEquals(BallColor.ABORTED, subject.getIconColor());
-		
+
 		subject.add(makeProjectWithColor(BallColor.YELLOW));
 		assertEquals(BallColor.YELLOW, subject.getIconColor());
-		
+
 		subject.add(makeProjectWithColor(BallColor.ABORTED));
 		assertEquals(BallColor.YELLOW, subject.getIconColor());
-		
+
 		subject.add(makeProjectWithColor(BallColor.RED));
 		assertEquals(BallColor.RED, subject.getIconColor());
-		
+
 		subject.add(makeProjectWithColor(BallColor.YELLOW));
 		assertEquals(BallColor.RED, subject.getIconColor());
 	}
-	
+
 	@Test
 	public void getLastBuild_ShouldReturnLastBuildInTheGroup() {
 		subject.add(makeProjectWithLastBuildDate(DateTime.parse("2014-03-28T18:00:00-03:00")));
@@ -72,7 +76,7 @@ public class GroupTopLevelItemTest {
 		subject.add(makeProjectWithLastBuildDate(DateTime.parse("2014-03-30T18:00:00-03:00")));
 		assertEquals("2014-03-30T18:00:00.000-03:00", dateString(subject.getLastBuild().getTimestamp()));
 	}
-	
+
 	@Test
 	public void getLastBuild_WithNullBuild_ShouldNotBreak() {
 		FreeStyleProject freeStyleProject = makeMockProject();
@@ -80,7 +84,7 @@ public class GroupTopLevelItemTest {
 		subject.add(freeStyleProject);
 		assertEquals("2014-03-28T18:00:00.000-03:00", dateString(subject.getLastBuild().getTimestamp()));
 	}
-	
+
 	@Test
 	public void getLastSuccessfulBuild_ShouldReturnLastBuildInTheGroup() {
 		subject.add(makeProjectWithLastSuccessfulBuildDate(DateTime.parse("2014-03-28T18:00:00-03:00")));
@@ -90,7 +94,7 @@ public class GroupTopLevelItemTest {
 		subject.add(makeProjectWithLastSuccessfulBuildDate(DateTime.parse("2014-03-30T18:00:00-03:00")));
 		assertEquals("2014-03-30T18:00:00.000-03:00", dateString(subject.getLastSuccessfulBuild().getTimestamp()));
 	}
-	
+
 	@Test
 	public void getLastStableBuild_ShouldReturnLastBuildInTheGroup() {
 		subject.add(makeProjectWithLastStableBuildDate(DateTime.parse("2014-03-28T18:00:00-03:00")));
@@ -100,7 +104,7 @@ public class GroupTopLevelItemTest {
 		subject.add(makeProjectWithLastStableBuildDate(DateTime.parse("2014-03-30T18:00:00-03:00")));
 		assertEquals("2014-03-30T18:00:00.000-03:00", dateString(subject.getLastStableBuild().getTimestamp()));
 	}
-	
+
 	@Test
 	public void getLastFailedBuild_ShouldReturnLastBuildInTheGroup() {
 		subject.add(makeProjectWithLastFailedBuildDate(DateTime.parse("2014-03-28T18:00:00-03:00")));
@@ -110,7 +114,7 @@ public class GroupTopLevelItemTest {
 		subject.add(makeProjectWithLastFailedBuildDate(DateTime.parse("2014-03-30T18:00:00-03:00")));
 		assertEquals("2014-03-30T18:00:00.000-03:00", dateString(subject.getLastFailedBuild().getTimestamp()));
 	}
-	
+
 	@Test
 	public void getLastUnsuccessfulBuild_ShouldReturnLastBuildInTheGroup() {
 		subject.add(makeProjectLastUnsuccessfulBuildDate(DateTime.parse("2014-03-28T18:00:00-03:00")));
@@ -123,24 +127,24 @@ public class GroupTopLevelItemTest {
 
 	private TopLevelItem makeProjectLastUnsuccessfulBuildDate(DateTime parse) {
 		return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
-				return (AbstractBuild) project.getLastUnsuccessfulBuild();
+			public Run getFrom(Job project) {
+				return (Run) project.getLastUnsuccessfulBuild();
 			}
 		});
 	}
 
 	private TopLevelItem makeProjectWithLastFailedBuildDate(DateTime parse) {
 		return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
-				return (AbstractBuild) project.getLastFailedBuild();
+			public Run getFrom(Job project) {
+				return (Run) project.getLastFailedBuild();
 			}
 		});
 	}
 
-	
+
 	private TopLevelItem makeProjectWithLastBuildDate(DateTime parse) {
 		return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
+			public Run getFrom(Job project) {
 				return project.getLastBuild();
 			}
 		});
@@ -148,22 +152,26 @@ public class GroupTopLevelItemTest {
 
 	private TopLevelItem makeProjectWithLastSuccessfulBuildDate(DateTime parse) {
 		return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
-				return (AbstractBuild) project.getLastSuccessfulBuild();
+			public Run getFrom(Job project) {
+				return (Run) project.getLastSuccessfulBuild();
 			}
 		});
 	}
-	
+
 	private TopLevelItem makeProjectWithLastStableBuildDate(DateTime parse) {
 		return makeMockToGetBuild(parse, new GroupTopLevelItem.GetBuild() {
-			public AbstractBuild getFrom(AbstractProject project) {
-				return (AbstractBuild) project.getLastStableBuild();
+			public Run getFrom(Job project) {
+				return (Run) project.getLastStableBuild();
 			}
 		});
 	}
 
 	private TopLevelItem makeProjectWithColor(BallColor color) {
-		FreeStyleProject freeStyleProject = makeMockProject();
+		return makeProjectWithColor(color, "");
+	}
+
+	private TopLevelItem makeProjectWithColor(BallColor color, String projName) {
+		FreeStyleProject freeStyleProject = makeMockProject(projName);
 		when(freeStyleProject.getIconColor()).thenReturn(color);
 		return freeStyleProject;
 	}
@@ -187,12 +195,16 @@ public class GroupTopLevelItemTest {
 		return freeStyleProject;
 	}
 
-	public FreeStyleProject makeMockProject() {
+	private FreeStyleProject makeMockProject() {
+		return makeMockProject("");
+	}
+
+	public FreeStyleProject makeMockProject(String projName) {
 		FreeStyleProject freeStyleProject = mock(FreeStyleProject.class);
-		when(freeStyleProject.getName()).thenReturn("");
+		when(freeStyleProject.getName()).thenReturn(projName);
 		return freeStyleProject;
 	}
-	
+
 	private String dateString(Calendar timestamp) {
 		return new DateTime(timestamp).toString();
 	}

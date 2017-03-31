@@ -16,14 +16,20 @@ public class CategorizedItemsBuilder {
 	private List<GroupTopLevelItem> groupItems = new ArrayList<GroupTopLevelItem>();
 	private List<? extends CategorizationCriteria> groupingRules;
 	private Map<String, TopLevelItem> itemsData;
+	private String regexToIgnoreOnColorComputing;
 
 	public CategorizedItemsBuilder(List<TopLevelItem> itemsToCategorize, List<? extends CategorizationCriteria> groupingRules) {
-		this.itemsToCategorize = itemsToCategorize;
-		this.groupingRules = groupingRules;
+		this(itemsToCategorize, groupingRules, "");
 	}
 	
+	public CategorizedItemsBuilder(List<TopLevelItem> items, List<? extends CategorizationCriteria> groupingRules, String regexToIgnoreOnColorComputing) {
+		this.itemsToCategorize = items;
+		this.groupingRules = groupingRules;
+		this.regexToIgnoreOnColorComputing = regexToIgnoreOnColorComputing;
+	}
+
 	public List<TopLevelItem> getRegroupedItems() {
-		return buildRegroupedItems(itemsToCategorize);
+		return  buildRegroupedItems(itemsToCategorize);
 	}
 
 	private List<TopLevelItem> buildRegroupedItems(List<TopLevelItem> items) {
@@ -54,8 +60,9 @@ public class CategorizedItemsBuilder {
 	{
 		boolean grouped = false;
 		for (CategorizationCriteria groupingRule : groupingRules) {
-			if (groupingRule.groupNameGivenItem(item)!=null) {
-				addItemToAppropriateGroup(categorizedItems, item, groupingRule);
+			String groupNameGivenItem = groupingRule.groupNameGivenItem(item);
+			if (groupNameGivenItem!=null) {
+				addItemToAppropriateGroup(groupNameGivenItem, categorizedItems, item, groupingRule);
 				grouped = true;
 			}
 		}
@@ -63,10 +70,10 @@ public class CategorizedItemsBuilder {
 	}
 
 	public void addItemToAppropriateGroup(
+			final String groupName,
 			final List<TopLevelItem> categorizedItems,
 			TopLevelItem item, CategorizationCriteria groupingRule) 
 	{
-		final String groupName = groupingRule.groupNameGivenItem(item);
 		GroupTopLevelItem groupTopLevelItem = getGroupForItemOrCreateIfNeeded(categorizedItems, groupName);
 		groupTopLevelItem.add(item);
 	}
@@ -97,7 +104,7 @@ public class CategorizedItemsBuilder {
 	{
 		boolean groupIsMissing = !groupItemByGroupName.containsKey(groupName);
 		if (groupIsMissing) {
-			GroupTopLevelItem value = new GroupTopLevelItem(groupName);
+			GroupTopLevelItem value = new GroupTopLevelItem(groupName, regexToIgnoreOnColorComputing);
 			groupItems.add(value);
 			groupItemByGroupName.put(groupName, value);
 			groupedItems.add(groupItemByGroupName.get(groupName));
